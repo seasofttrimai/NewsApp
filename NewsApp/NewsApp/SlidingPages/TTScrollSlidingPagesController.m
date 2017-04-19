@@ -47,6 +47,7 @@ static int headerCVPadding = 20;
 + (UIHeaderSubCVCell*)initHeaderSubCVCell:(UICollectionView*)cv forIndexPath:(NSIndexPath*)indexPath withFont:(UIFont*)font;
 + (NSString*)getReuseIdentifier;
 - (void)updateCellWithName:(NSString*)cateName isSelected:(BOOL)selected;
+- (void)updateStatusSelected:(BOOL)selected;
 @end
 
 @implementation UIHeaderSubCVCell
@@ -65,7 +66,7 @@ static int headerCVPadding = 20;
         [titleLabel setTextAlignment:NSTextAlignmentCenter];
         [titleLabel setAutoresizesSubviews:true];
         [titleLabel setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-        [titleLabel setTextColor:[UIColor colorWithWhite:0.5 alpha:1.0]];
+        [titleLabel setTextColor:[UIColor lightGrayColor]];//[UIColor colorWithRed:48.0/255 green:76.0/255 blue:157.0/255 alpha:1.0]];
         //if (DeviceType.s)
         [titleLabel setFont:font];
         [titleLabel setAdjustsFontSizeToFitWidth:YES];
@@ -79,7 +80,7 @@ static int headerCVPadding = 20;
         [selectedTitleLabel setTextAlignment:NSTextAlignmentCenter];
         [selectedTitleLabel setAutoresizesSubviews:true];
         [selectedTitleLabel setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-        [selectedTitleLabel setTextColor:[UIColor colorWithRed:35.0/255 green:175.0/255 blue:211.0/255 alpha:1.0]];
+        [selectedTitleLabel setTextColor:[UIColor colorWithRed:48.0/255 green:76.0/255 blue:157.0/255 alpha:1.0]];
         //if (DeviceType.s)
         [selectedTitleLabel setFont:font];
         [selectedTitleLabel setAdjustsFontSizeToFitWidth:YES];
@@ -100,7 +101,14 @@ static int headerCVPadding = 20;
     }else{
         selectedTitleLabel.alpha = 0.0;
     }
-    
+}
+
+- (void)updateStatusSelected:(BOOL)selected{
+    if (selected) {
+        selectedTitleLabel.alpha = 1.0;
+    }else{
+        selectedTitleLabel.alpha = 0.0;
+    }
 }
 
 @end
@@ -109,8 +117,11 @@ static int headerCVPadding = 20;
 {
     UICollectionView    *headerCV;
     UIView  *headerLine;
-    NSMutableArray *cachedPageTabs;
+    NSMutableArray *widthPageList, *subTitleArray;
+    
 }
+@property (nonatomic)BOOL    shouldBasedOnTitleTextWidth;
+@property (nonatomic) NSInteger selectedIndexPathSub;
 @end
 
 @implementation TTScrollSlidingPagesController
@@ -207,10 +218,38 @@ static int headerCVPadding = 20;
         nextYPosition += self.titleScrollerHeight;
         //line underneith the top scroller
         
-        
-
     }
     
+    
+    
+    UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
+    [flowLayout setItemSize:CGSizeMake(100, 40)];
+    [flowLayout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
+    [flowLayout setMinimumLineSpacing:0.0];
+    [flowLayout setMinimumInteritemSpacing:0.0];
+    headerCV = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.bottomScrollerSize.width, 40) collectionViewLayout:flowLayout];
+    [headerCV setDelegate:self];
+    [headerCV setDataSource:self];
+    [headerCV setBackgroundColor:[UIColor whiteColor]];
+    [headerCV registerClass:[UIHeaderSubCVCell class] forCellWithReuseIdentifier:[UIHeaderSubCVCell getReuseIdentifier]];
+    [headerCV setShowsHorizontalScrollIndicator:NO];
+    headerCV.layer.shadowOffset = CGSizeMake(0, 4);
+    headerCV.layer.shadowRadius = 4;
+    headerCV.layer.shadowOpacity = 0.3;
+    
+    //Add shadow path (better performance)
+    CGPathRef shadowPath = [UIBezierPath bezierPathWithRect:headerCV.bounds].CGPath;
+    [headerCV.layer setShadowPath:shadowPath];
+    //rasterize (also due to the better performance)
+    headerCV.layer.shouldRasterize = YES;
+    headerCV.bounces = NO;
+    headerCV.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self.view addSubview:headerCV];
+    
+    
+    headerLine = [[UIView alloc] initWithFrame:CGRectMake(0, 38, 0, 2)];
+    [headerLine setBackgroundColor:[UIColor colorWithRed:48.0/255 green:76.0/255 blue:157.0/255 alpha:1.0]];
+    [headerCV addSubview:headerLine];
     
     //set up the bottom scroller (for the content to go in)
     
@@ -221,7 +260,10 @@ static int headerCVPadding = 20;
     bottomScrollView.directionalLockEnabled = YES;
     bottomScrollView.delegate = self; //move the top scroller proportionally as you drag the bottom.
     bottomScrollView.alwaysBounceVertical = NO;
+    bottomScrollView.bounces = NO;
     [self.view addSubview:bottomScrollView];
+    
+    self.selectedIndexPathSub = 0;
     
     //add the drop shadow on the top scroller (if enabled) and bring the view to the front
     if (!self.titleScrollerHidden && !self.disableTitleScrollerShadow){
@@ -245,6 +287,111 @@ static int headerCVPadding = 20;
         //hide the page dots initially
         pageControl.alpha = 0;
     }
+}
+
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
+    
+    if (self.shouldBasedOnTitleTextWidth){
+        NSString *title = subTitleArray[indexPath.row];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+        [label setFont:[UIFont boldSystemFontOfSize:14]];
+        [label setText:title];
+        [label sizeToFit];
+        
+        return CGSizeMake(label.frame.size.width + headerCVPadding, 40);
+    }else{
+        return CGSizeMake(self.view.frame.size.width / (CGFloat)subTitleArray.count, 40.0);
+    }
+}
+
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section{
+    
+    return CGSizeMake(0, 0);
+}
+
+- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
+    return UIEdgeInsetsMake(0, 0, 0, 0);
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
+    return subTitleArray.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    UIHeaderSubCVCell *cell = [UIHeaderSubCVCell initHeaderSubCVCell:collectionView forIndexPath:indexPath withFont:self.titleScrollerTextFont];
+    if (indexPath.row == self.selectedIndexPathSub) {
+        [cell updateCellWithName:subTitleArray[indexPath.row] isSelected:YES];
+    }else{
+        [cell updateCellWithName:subTitleArray[indexPath.row] isSelected:NO];
+    }
+    
+    return cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+    self.selectedIndexPathSub = indexPath.row;
+    [collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+    [collectionView reloadData];
+    //[self headerCVScrollHeaderLineToPage: (int)indexPath.row];
+    [self scrollToPage:(int)indexPath.row animated:YES];
+    self.block((int)indexPath.row);
+    
+}
+
+- (void)headerSelectRowAtIndex:(NSIndexPath*)atIndex animation:(BOOL)animation{
+    self.selectedIndexPathSub = atIndex.row;
+    [headerCV scrollToItemAtIndexPath:atIndex atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:animation];
+    [headerCV reloadData];
+    [self headerCVScrollHeaderLineToPage:(int)atIndex.row];
+}
+
+- (void)headerCVScrollToCurrentIndexNow{
+    [headerCV scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:self.selectedIndexPathSub inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:NO];
+}
+
+- (int)headerCVOriginXOfPage:(int)page{
+    if (self.shouldBasedOnTitleTextWidth){
+        float originX = 0;
+        for (int i=0; i < page; i++){
+            originX = originX +  [widthPageList[i] floatValue];
+        }
+        return originX;
+    }else{
+        return  page * [widthPageList[0] floatValue];
+    }
+}
+
+- (float)headerCVWidthOfPage:(int)page{
+    return [widthPageList[page] floatValue];
+}
+
+
+- (void)headerCVScrollHeaderLineToPage:(int)page{
+    if (self.shouldBasedOnTitleTextWidth){
+        
+        float originX = [self headerCVOriginXOfPage:page];
+        float labelWidth = [self headerCVWidthOfPage:page];
+        
+        
+        [UIView animateWithDuration:0.5 animations:^{
+            headerLine.frame = CGRectMake(originX, 38, labelWidth, 2);
+        }];
+        
+        
+    }else{
+        float width = self.view.frame.size.width / (CGFloat)subTitleArray.count;
+        [UIView animateWithDuration:0.5 animations:^{
+            headerLine.frame = CGRectMake(page*width, 38, width, 2);
+        }];
+        //return CGSizeMake(self.view.frame.size.width / (CGFloat)subTitleArray.count, 40.0);
+    }
+}
+
+- (void)reloadHeaderTitle{
+    [headerCV reloadData];
 }
 
 -(void)viewDidAppear:(BOOL)animated{
@@ -299,6 +446,21 @@ static int headerCVPadding = 20;
     int nextTopScrollerXPosition = 0;
     
     //loop through each page and add it to the scroller
+    if (subTitleArray == nil){
+        subTitleArray = [NSMutableArray array];
+    }
+    [subTitleArray removeAllObjects];
+    
+    if (widthPageList == nil){
+        widthPageList = [NSMutableArray array];
+    }
+    [widthPageList removeAllObjects];
+    
+    
+    
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+    [label setFont:self.titleScrollerTextFont];
+    CGFloat totalContentSize = 0;
     for (int i=0; i<numOfPages; i++){
         //top scroller (nav) add----
         TTSlidingPageTitle *title = [self.dataSource titleForSlidingPagesViewController:self atIndex:i];
@@ -329,6 +491,14 @@ static int headerCVPadding = 20;
             
             topItem = (UIView *)label;
         }
+        
+        [label setText:title.headerText];
+        [label sizeToFit];
+        CGFloat widthOfLB = label.frame.size.width + headerCVPadding;
+        totalContentSize += widthOfLB;
+        [widthPageList addObject:[NSNumber numberWithFloat:widthOfLB]];
+        
+        [subTitleArray addObject:title.headerText];
         
         if ([topItem isKindOfClass:[UIImageView class]])
             topItem.frame = CGRectMake(nextTopScrollerXPosition, -5, topScrollView.frame.size.width, topScrollView.frame.size.height);
@@ -376,6 +546,10 @@ static int headerCVPadding = 20;
         }
         
     }
+    self.shouldBasedOnTitleTextWidth = totalContentSize > self.view.frame.size.width ? YES : NO;
+    
+    [headerCV reloadData];
+    [self headerCVScrollHeaderLineToPage:0];
     
     //now set the content size of the scroller to be as wide as nextXPosition (we can know that nextXPosition is also the width of the scroller)
     topScrollView.contentSize = CGSizeMake(nextTopScrollerXPosition, topScrollView.frame.size.height);
@@ -604,6 +778,8 @@ static int headerCVPadding = 20;
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     [self setStatusBarReplacedWithPageDots:YES];
+    //[headerCV scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:self.selectedIndexPathSub inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:NO];
+    
 }
 
 
@@ -670,7 +846,7 @@ static int headerCVPadding = 20;
         bottomScrollView.delegate = self;
     }
     else if (scrollView == bottomScrollView){
-        //translate the bottom scroll to the top scroll. The bottom scroll items can in theory be different widths so it's a bit more complicated.
+        /*//translate the bottom scroll to the top scroll. The bottom scroll items can in theory be different widths so it's a bit more complicated.
         
         //get the x position of the page in the top scroller
         int topXPosition = self.titleScrollerItemWidth * currentPage;
@@ -686,17 +862,45 @@ static int headerCVPadding = 20;
         
         topScrollView.delegate = nil;
         topScrollView.contentOffset = CGPointMake(topXPosition, 0);
-        topScrollView.delegate = self;
+        topScrollView.delegate = self;*/
+        if (currentPage < subTitleArray.count - 1){
+            
+            float percent = (scrollView.contentOffset.x - currentPage*scrollView.frame.size.width)/scrollView.frame.size.width;
+            
+            float currentPageWidth = [self headerCVWidthOfPage:currentPage];
+            float nextPageWidth = [self headerCVWidthOfPage:currentPage+1];
+            
+            float currentPosition = [self headerCVOriginXOfPage:currentPage];
+            float originX = currentPosition + currentPageWidth*percent;
+            float width = (currentPageWidth * (1.0 - percent)) + (nextPageWidth * percent);
+            
+            NSLog(@"percent = %f",percent);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                headerLine.frame = CGRectMake(originX , 38, width, 2);
+                UIHeaderSubCVCell *currentCell = (UIHeaderSubCVCell*)[headerCV cellForItemAtIndexPath:[NSIndexPath indexPathForRow:currentPage inSection:0]];
+                UIHeaderSubCVCell *nextCell = (UIHeaderSubCVCell*)[headerCV cellForItemAtIndexPath:[NSIndexPath indexPathForRow:currentPage +1 inSection:0]];
+                if (percent > 0.5){
+                    [currentCell updateStatusSelected:NO];
+                    [nextCell updateStatusSelected:YES];
+                }else{
+                    [currentCell updateStatusSelected:YES];
+                    [nextCell updateStatusSelected:NO];
+                }
+            });
+        }
+        
     }
     
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
-    
+    if (scrollView == (UIScrollView*)headerCV){
+        return;
+    }
     
     int currentPage = [self getCurrentDisplayedPage];
     [self setStatusBarReplacedWithPageDots:NO];
-
+    [self headerSelectRowAtIndex:[NSIndexPath indexPathForRow:currentPage inSection:0] animation:YES];
         self.block(currentPage);
  
     

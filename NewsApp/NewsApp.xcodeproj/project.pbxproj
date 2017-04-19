@@ -11,6 +11,7 @@
 		4A6BBDC01EA5A5B7003B3516 /* imageRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6BBDBE1EA5A5B6003B3516 /* imageRight.png */; };
 		4A6BBDC51EA5ADD9003B3516 /* CustomCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6BBDC41EA5ADD9003B3516 /* CustomCells.swift */; };
 		4A6BBDC71EA5AE50003B3516 /* AppExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6BBDC61EA5AE50003B3516 /* AppExtension.swift */; };
+		4A7851381EA6FB68006939F0 /* TinTucViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7851371EA6FB68006939F0 /* TinTucViewController.swift */; };
 		4A7DDDEB1E9F155A006209F2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7DDDEA1E9F155A006209F2 /* AppDelegate.swift */; };
 		4A7DDDED1E9F155A006209F2 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7DDDEC1E9F155A006209F2 /* HomeViewController.swift */; };
 		4A7DDDF01E9F155A006209F2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4A7DDDEE1E9F155A006209F2 /* Main.storyboard */; };
@@ -49,6 +50,7 @@
 		4A6BBDBE1EA5A5B6003B3516 /* imageRight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = imageRight.png; sourceTree = "<group>"; };
 		4A6BBDC41EA5ADD9003B3516 /* CustomCells.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCells.swift; sourceTree = "<group>"; };
 		4A6BBDC61EA5AE50003B3516 /* AppExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppExtension.swift; sourceTree = "<group>"; };
+		4A7851371EA6FB68006939F0 /* TinTucViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TinTucViewController.swift; sourceTree = "<group>"; };
 		4A7DDDE71E9F155A006209F2 /* NewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A7DDDEA1E9F155A006209F2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4A7DDDEC1E9F155A006209F2 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
@@ -124,6 +126,14 @@
 				4A6BBDC41EA5ADD9003B3516 /* CustomCells.swift */,
 			);
 			name = CustomCells;
+			sourceTree = "<group>";
+		};
+		4A7851361EA6FB28006939F0 /* Sub ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				4A7851371EA6FB68006939F0 /* TinTucViewController.swift */,
+			);
+			name = "Sub ViewControllers";
 			sourceTree = "<group>";
 		};
 		4A7DDDDE1E9F1559006209F2 = {
@@ -231,6 +241,7 @@
 				4A7DDDEC1E9F155A006209F2 /* HomeViewController.swift */,
 				4AEED48D1EA4B65600475FC4 /* LeftViewController.swift */,
 				4AEED4941EA4BA1C00475FC4 /* MainViewController.swift */,
+				4A7851361EA6FB28006939F0 /* Sub ViewControllers */,
 			);
 			name = ViewControllers;
 			sourceTree = "<group>";
@@ -418,6 +429,7 @@
 				4A7DDE2B1E9F56F0006209F2 /* TTScrollViewWrapper.m in Sources */,
 				4A7DDE2A1E9F56F0006209F2 /* TTScrollSlidingPagesController.m in Sources */,
 				4AEED4871EA4B58D00475FC4 /* LGSideMenuDrawer.m in Sources */,
+				4A7851381EA6FB68006939F0 /* TinTucViewController.swift in Sources */,
 				4AEED4861EA4B58D00475FC4 /* LGSideMenuControllerGesturesHandler.m in Sources */,
 				4A7DDE0D1E9F35CD006209F2 /* ThePageViewController.swift in Sources */,
 				4A7DDDEB1E9F155A006209F2 /* AppDelegate.swift in Sources */,
